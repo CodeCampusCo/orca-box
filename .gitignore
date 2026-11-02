@@ -1,0 +1,3 @@
+# Backups hold agent memory and transcripts
+*.tgz
+.env
