@@ -10,6 +10,6 @@ Every change to the box goes into the scripts first and is applied by rerunning 
 
 Interactive steps stay manual: Tailscale login and Tailnet Lock signing, agent logins, Orca pairing. Pairing URLs and tokens never go into chats, logs or commits.
 
-Check before committing: `bash -n` on every script. A script change counts as tested only after it ran on a real box; say which steps were not.
+Check before committing: `bash -n` on every script. A script change counts as tested only after it ran on a box (a fresh Mac VM counts); say which steps were not.
 
 Talk to the owner in Thai; write the repo in English. Dates are ISO `YYYY-MM-DD`.
