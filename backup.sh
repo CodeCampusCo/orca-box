@@ -13,7 +13,7 @@ done
 
 # Agent memory and history; logins are redone, not copied.
 paths=()
-for p in .claude/projects .codex/memories_1.sqlite .gemini/antigravity-cli/brain; do
+for p in .claude/projects .codex/memories_1.sqlite; do
   [ -e "$p" ] && paths+=("$p")
 done
 tar -czf - "${paths[@]}"

@@ -42,7 +42,9 @@ for n in codex codex-code-mode-host codex-exec-server; do
   install -m 755 -o "$RUN_USER" -g "$RUN_USER" "/tmp/${n}-${triple}" "/home/$RUN_USER/.local/bin/$n"
 done
 
-su - "$RUN_USER" -c 'curl -fsSL -o /tmp/agy-install.sh https://antigravity.google/cli/install.sh && bash /tmp/agy-install.sh'
+# Interactive non-login shells read only .bashrc, so ~/.local/bin must be added there too.
+path_line='export PATH="$HOME/.local/bin:$PATH"'
+grep -qxF "$path_line" "/home/$RUN_USER/.bashrc" || echo "$path_line" >> "/home/$RUN_USER/.bashrc"
 
 # SSH from anywhere, everything over the tailnet, Orca's port from the LAN as a fallback.
 gw="$(ip route | awk '/^default/ {print $3; exit}')"
