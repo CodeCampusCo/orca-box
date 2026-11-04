@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Run as the runtime user, in your own terminal (the pairing URL is a credential):
 #   ssh -t -p <vm-ssh-port> orca@<host-tailnet-address> bash pair.sh <host-tailnet-address>
-# Stops the service, serves with pairing on at the address given (default: this machine's tailnet address), waits for Enter,
-# then restarts the service, which has pairing off.
+# Pairing is off in the service (setup-box.sh), so this swaps it for a pairing server until you press Enter.
+# The address is the host's tailnet address; the VM has no Tailscale.
 set -euo pipefail
 export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-addr="${1:-$(tailscale ip -4)}"
+addr="${1:?usage: bash pair.sh <host-tailnet-address>}"
 
 systemctl --user stop orca-serve
 log="$(mktemp)"
