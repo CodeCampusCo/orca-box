@@ -1,3 +1,7 @@
 # Backups hold agent memory and transcripts
 *.tgz
 .env
+
+# Local plans and session notes
+docs/plans/
+docs/notes/
