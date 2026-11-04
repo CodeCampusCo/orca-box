@@ -14,12 +14,8 @@ Scripts and a runbook for a headless Ubuntu host that runs one Multipass VM with
 Copy this prompt into your coding agent (Claude Code or similar) on the second computer:
 
 ```
-Clone or open the orca-box repository. Read README.md, RUNBOOK.md and the "Guided setup (for the agent)" section of RUNBOOK.md.
+Clone or open the orca-box repository and follow the "Guided setup (for the agent)" section of RUNBOOK.md.
 I am starting from a blank mini PC and want a working Orca box.
-
-First give me the complete numbered list of steps from blank hardware to a paired Orca with the coding agents I use (the last step is agent setup: ask me which agents I use and help me find how to install and log in to any the scripts do not already cover), short, marking the ones only I can do. Then walk me through them one at a time and wait for me to confirm each before the next.
-
-Talk to me in my own language. Never ask me to paste passwords, tokens, pairing URLs or Tailscale login URLs into the chat, and never write them to files. Ask before any reboot, any change to SSH, firewall or kernel, and before running anything on the box that is not in this repo's scripts. Follow RUNBOOK.md exactly instead of improvising. When something fails, stop and report the exact error instead of working around it.
 ```
 
 ## Doing it by hand
