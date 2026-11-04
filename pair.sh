@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run as the runtime user, in your own terminal (the pairing URL is a credential):
-#   ssh orca@<box> bash pair.sh
-# Stops the service, serves with pairing on at the box's tailnet address, waits for Enter,
+#   ssh -t -p <vm-ssh-port> orca@<host-tailnet-address> bash pair.sh <host-tailnet-address>
+# Stops the service, serves with pairing on at the address given (default: this machine's tailnet address), waits for Enter,
 # then restarts the service, which has pairing off.
 set -euo pipefail
 export XDG_RUNTIME_DIR="/run/user/$(id -u)"

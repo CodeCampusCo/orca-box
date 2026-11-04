@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run as the runtime user; writes a tar.gz of what git does not hold to stdout:
-#   ssh orca@<box> bash -s < backup.sh > orca-box-$(date +%F).tgz
+#   ssh -p <vm-ssh-port> orca@<host-tailnet-address> bash -s < backup.sh > orca-box-$(date +%F).tgz
 # Warns on stderr about repos with uncommitted or unpushed work, which this backup does not cover.
 set -euo pipefail
 cd "$HOME"
