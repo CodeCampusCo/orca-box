@@ -16,4 +16,13 @@ paths=()
 for p in .claude/projects .codex/memories_1.sqlite; do
   [ -e "$p" ] && paths+=("$p")
 done
+
+# Orca automations: the CLI has no import, so restore.sh recreates them from this list.
+tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+if orca-ide automations list --json 2>/dev/null | jq -e '.result.automations' > "$tmp/orca-automations.json"; then
+  paths+=(-C "$tmp" orca-automations.json)
+else
+  echo "WARN automations not backed up: Orca is not answering" >&2
+fi
+
 tar -czf - "${paths[@]}"

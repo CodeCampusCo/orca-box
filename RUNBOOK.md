@@ -54,7 +54,7 @@ On any failure: stop, show the user the exact error, and do not work around it. 
 6. Check from your computer that `ssh <admin>@<ts>` and `ssh -p 2222 orca@<ts>` both work. Then close the LAN, over the tailnet: `ssh -t <admin>@<ts> sudo bash setup-host.sh --lock-lan`. Afterwards the LAN reaches nothing on the host; check that `ssh <admin>@<lan-ip>` times out.
 7. `gh auth login --with-token` with a fine-grained token scoped to the repos the box works on, then `gh auth setup-git`.
 8. Pair Orca, in your own terminal (the URL is a credential, keep it out of chats): `scp -P 2222 pair.sh orca@<ts>:` then `ssh -t -p 2222 orca@<ts> bash pair.sh <ts>`. Paste the URL into Orca: Settings, Remote Orca Servers, Add server. Press Enter on the box when paired.
-9. Agents, last, as `orca` (`ssh -t -p 2222 orca@<ts>`). The scripts install Claude Code and Codex: log in with `claude` (then `/exit`) and `codex login --device-auth`; check with `claude -p "Reply with exactly: ok"` and `codex exec --skip-git-repo-check "Reply with exactly: ok" </dev/null`. If the user wants a different or additional agent, ask which one, then find its current install and login instructions (its own documentation) and help install and log in as `orca` in the VM, with a one-line prompt as the check. Anything installed by hand is lost when the VM is rebuilt: offer to add its install to `setup-box.sh`, and make that script change first.
+9. Agents, last, as `orca` (`ssh -t -p 2222 orca@<ts>`). The scripts install Claude Code and Codex: log in with `claude` (then `/exit`) and `codex login --device-auth`; check with `claude -p "Reply with exactly: ok"` and `codex exec --skip-git-repo-check "Reply with exactly: ok" </dev/null`. Orca starts Claude Code in automations with permission prompts off, and the first such run stops at a one-time "Bypass Permissions" confirmation; until someone accepts it in that run's terminal in Orca ("Yes, I accept"), the run stays `dispatched`. Accept it once after the first Claude automation is created. If the user wants a different or additional agent, ask which one, then find its current install and login instructions (its own documentation) and help install and log in as `orca` in the VM, with a one-line prompt as the check. Anything installed by hand is lost when the VM is rebuilt: offer to add its install to `setup-box.sh`, and make that script change first.
 
 ## Migrate to a new box
 
@@ -63,7 +63,7 @@ On any failure: stop, show the user the exact error, and do not work around it. 
 2. New box: steps 1 to 7 above, then 9.
 3. Clone each repo to the same path it had on the old box, then restore agent memory:
    `scp -P 2222 restore.sh orca@<new-ts>:` then `ssh -p 2222 orca@<new-ts> bash restore.sh < orca-box-YYYY-MM-DD.tgz`.
-4. Step 8 to pair the new box. Recreate any Orca automations (they are not in the backup).
+4. Step 8 to pair the new box. The restore recreates Orca automations that create a new worktree per run, for repos already cloned at their old path; it warns about the rest, which you recreate by hand with `orca-ide automations create`.
 5. Retire the old box (below).
 
 ## Rebuild the VM on the same host
