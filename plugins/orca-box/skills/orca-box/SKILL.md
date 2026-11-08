@@ -13,7 +13,7 @@ The box runs an Orca server inside a VM. This session reaches it with the `orca`
 orca status --json
 ```
 
-The output is long (hundreds of capability strings): read only `target.kind`, `runtime.reachable`, `runtime.connectionState` and `runtime.appVersion`. Expect `environment`, `true`, `connected` and the box's version. The server is headless, so `app.running` is `false` and `desktopWindowStatus` is `blocked`; that is normal. The target comes from `ORCA_ENVIRONMENT` (a name from `orca environment list`). If it is unset or the server is unreachable, tell the owner and wait.
+The output is long (hundreds of capability strings): read only `target.kind`, `runtime.reachable`, `runtime.connectionState` and `runtime.appVersion`, for example with `orca status --json | grep -E '"(kind|reachable|connectionState|appVersion)"'`. Expect `environment`, `true`, `connected` and the box's version. The server is headless, so `app.running` is `false` and `desktopWindowStatus` is `blocked`; that is normal. The target comes from `ORCA_ENVIRONMENT` (a name from `orca environment list`). If it is unset or the server is unreachable, tell the owner and wait.
 
 `runtime.appVersion` is the server's version. The CLI on the owner's computer can be newer, and a command the server does not know fails with a clear error.
 
@@ -37,7 +37,7 @@ orca terminal create --worktree path:/tmp --title install --command "<install co
 orca terminal read --terminal <handle> --json
 ```
 
-The create reply may warn that the terminal is running but not discoverable; the terminal still runs and `terminal read` works. Close it when done with `orca terminal close --terminal <handle> --tab`. The CLI has no command to remove a folder workspace, so one added here stays until the owner removes it in the Orca app: reuse it for the next install and tell the owner what was added.
+`--title` is optional. The create reply may warn that the terminal is running but not discoverable; the terminal still runs and `terminal read` works. Close it when done with `orca terminal close --terminal <handle> --tab`. The CLI has no command to remove a folder workspace, so one added here stays until the owner removes it in the Orca app: reuse it for the next install and tell the owner what was added.
 
 Check the result with a one-line prompt, for example `Reply with exactly: ok`.
 
