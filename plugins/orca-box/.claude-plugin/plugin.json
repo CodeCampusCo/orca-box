@@ -1,0 +1,7 @@
+{
+  "name": "orca-box",
+  "description": "Lets a coding agent reach the box's Orca server with the orca CLI, give agents work, watch runs and install agents.",
+  "author": {
+    "name": "CodeCampusCo"
+  }
+}

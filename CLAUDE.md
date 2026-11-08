@@ -1,6 +1,6 @@
 # orca-box
 
-Scripts and a runbook to set up, migrate, retire and maintain a headless Ubuntu box that runs the Orca server for remote agent work. `RUNBOOK.md` is the procedure; the scripts are the parts of it a machine can do. Design: `docs/specs/2026-11-03-design.md`.
+Scripts and a runbook to set up, migrate, retire and maintain a headless Ubuntu box that runs the Orca server for remote agent work. `RUNBOOK.md` is the procedure; the scripts are the parts of it a machine can do. `plugins/` holds the Claude Code plugin (skills) users install into their own agent to work with a box that is already set up; `plugins/README.md` is their install procedure. Design: `docs/specs/2026-11-03-design.md`.
 
 The repo may go public: nothing committed names a specific machine, address, account, token or person's setup. Box-specific values are read on the box (`tailscale ip -4`) or kept outside the repo.
 
