@@ -37,18 +37,31 @@ orca terminal create --worktree path:/tmp --title install --command "<install co
 orca terminal read --terminal <handle> --json
 ```
 
-`--title` is optional. The create reply may warn that the terminal is running but not discoverable; the terminal still runs and `terminal read` works. Close it when done with `orca terminal close --terminal <handle> --tab`. The CLI has no command to remove a folder workspace, so one added here stays until the owner removes it in the Orca app: reuse it for the next install and tell the owner what was added.
+`--title` is optional. The create reply may warn that the terminal is running but not discoverable; the terminal still runs and `terminal read` works. Close it when done with `orca terminal close --terminal <handle> --tab`. Reuse that workspace for the next install and tell the owner what was added; when it is no longer needed, see "Remove a project" below.
 
 Check the result with a one-line prompt, for example `Reply with exactly: ok`.
 
 A VM rebuild removes anything installed this way. Agents added after setup are reinstalled by the session that needs them.
 
-## 4. Steps that belong to the owner
+## 4. Working with agents and projects
+
+- Start a coordinator or worker with `orca agent launch`. Where Claude Code has not yet been accepted into Bypass Permissions mode, the Enter that `--prompt` sends lands on the confirmation, whose default is "No, exit", and Claude exits. Launch without `--prompt`, have the owner accept once, then send the brief with `orca terminal send --text "<brief>" --enter`.
+- `orca terminal read` prints stacked fragments for full-screen agents and wrapped commands. Use `--screen` for what is rendered.
+- A new terminal can take a few seconds to show output, and `terminal wait --for exit` timing out does not mean the command failed.
+- `orca orchestration ...` works only inside an Orca terminal (outside it fails with `no_active_sender_terminal`). From outside, launch a coordinator agent with `agent launch`; the coordinator then uses `worker-start`. It needs the orchestration skill installed on the box (Settings > Orchestration in the Orca app); `orca skills install` installs only Orca's bundled skills.
+- Environment variables an agent needs (for example Claude's `CLAUDE_CODE_OAUTH_TOKEN`) are set by the owner in the runtime user's `~/.profile`, which Orca's terminals read.
+- Browser tabs: `orca tab create --url <url> --worktree path:<abs>` opens a page on the box, and `orca snapshot` reads its DOM. Agents running on the box cannot check how a page looks: screenshots taken from a terminal on the box come back as a flat single colour. Do not promise visual checks from there.
+
+### Remove a project
+
+`orca project setups --json` lists projects with their ids. `orca project setup-delete --setup <id>` removes the project record and refuses while it has open terminals or saved workspace details; `--force` overrides that. It deletes no files: close the project's terminals, then run `rm -rf <path>` in an Orca terminal on the box. `orca worktree rm` removes a non-root git worktree with its directory; for a project's root it fails with "Cannot delete the project root workspace".
+
+## 5. Steps that belong to the owner
 
 - Logging an agent in (device codes, browser sign-in). Start the login command in a terminal, show the owner the prompt it prints, and wait. Never write a code, token or URL into a chat, log or commit.
 - Pairing a device with the box.
 - The first-run "Bypass Permissions" confirmation of Claude Code in an automation. A run stays `dispatched` until the owner accepts it in that run's terminal.
 
-## 5. Not done from here
+## 6. Not done from here
 
 Updating Orca on the box, rebuilding the VM and changing the host belong to the session that keeps the box scripts.
