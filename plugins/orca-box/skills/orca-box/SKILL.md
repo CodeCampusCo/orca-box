@@ -70,7 +70,13 @@ Every test leaves state on the box: worktrees and their terminals, a viewing uni
 
 ### Remove a project
 
-`orca project setups --json` lists projects with their ids. `orca project setup-delete --setup <id>` removes the project record and refuses while it has open terminals or saved workspace details; `--force` overrides that. It deletes no files: close the project's terminals, then run `rm -rf <path>` in an Orca terminal on the box. `orca worktree rm` removes a non-root git worktree with its directory; for a project's root it fails with "Cannot delete the project root workspace".
+`--setup` takes the project's `repoId`, the `id` that `orca repo list --json` shows (`orca project setups --json` lists the same projects with `repoId` and `path`). `orca project setup-delete --setup <repoId>` removes the project record and refuses while it has open terminals or saved workspace details; `--force` overrides that. Do it in this order:
+
+1. `orca terminal list --json` and look for terminals whose `worktreePath` is the project's path. The owner may have opened some from the mobile app; ask before closing them, since closing ends that agent session. Close with `orca terminal close --terminal <handle> --tab`.
+2. Run `setup-delete` without `--force`. With the terminals closed it can still refuse because of saved workspace details, which belong to a project you are removing anyway, so then repeat with `--force`.
+3. Check with `orca repo list --json` and `orca terminal list --json`.
+
+The command deletes no files. To remove the directory too, run `rm -rf <path>` in an Orca terminal on the box, never for a shared path such as `/tmp`. `orca worktree rm` removes a non-root git worktree with its directory; for a project's root it fails with "Cannot delete the project root workspace".
 
 ## 5. Steps that belong to the owner
 
