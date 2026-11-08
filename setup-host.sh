@@ -240,6 +240,7 @@ EOF
 Description=Proxy to the VM's port $vmport
 Requires=orca-proxy-$name.socket
 After=orca-proxy-$name.socket orca-fw.service
+StartLimitIntervalSec=0
 
 [Service]
 ExecStart=/usr/lib/systemd/systemd-socket-proxyd --exit-idle-time=0 $pin:$vmport

@@ -5,7 +5,7 @@
 # Tailscale lives on the host. On a standalone box, SSH and Orca are then reachable from its own subnet only.
 set -euo pipefail
 
-ORCA_VERSION="${ORCA_VERSION:-1.4.245}"
+ORCA_VERSION="${ORCA_VERSION:-1.4.247}"
 CODEX_VERSION="${CODEX_VERSION:-0.166.0}"
 RUN_USER="${RUN_USER:-orca}"
 ORCA_PORT=6768
@@ -51,6 +51,13 @@ ufw --force enable
 uid="$(id -u "$RUN_USER")"
 until [ -d "/run/user/$uid" ]; do sleep 1; done
 su - "$RUN_USER" -c "XDG_RUNTIME_DIR=/run/user/$uid orca-ide serve service install --port $ORCA_PORT"
+
+# The Node runtime (default) does not advertise browser.screencast.v1, so the app cannot open browser tabs on this server.
+dropin="/home/$RUN_USER/.config/systemd/user/orca-serve.service.d"
+install -d -o "$RUN_USER" -g "$RUN_USER" "$dropin"
+printf '[Service]\nEnvironment=ORCA_SERVE_RUNTIME=electron\n' > "$dropin/runtime.conf"
+chown "$RUN_USER:$RUN_USER" "$dropin/runtime.conf"
+su - "$RUN_USER" -c "XDG_RUNTIME_DIR=/run/user/$uid systemctl --user daemon-reload"
 
 echo "done: orca-ide $(dpkg-query -W -f='${Version}' orca-ide), user=$RUN_USER"
 echo "next: RUNBOOK.md, 'Set up a new box', agent logins"
