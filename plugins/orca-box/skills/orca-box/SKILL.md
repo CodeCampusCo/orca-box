@@ -50,7 +50,7 @@ A VM rebuild removes anything installed this way. Agents added after setup are r
 - A new terminal can take a few seconds to show output, and `terminal wait --for exit` timing out does not mean the command failed.
 - `orca orchestration ...` works only inside an Orca terminal (outside it fails with `no_active_sender_terminal`). From outside, launch a coordinator agent with `agent launch`; the coordinator then uses `worker-start`. It needs the orchestration skill installed on the box (Settings > Orchestration in the Orca app); `orca skills install` installs only Orca's bundled skills.
 - Environment variables an agent needs (for example Claude's `CLAUDE_CODE_OAUTH_TOKEN`) are set by the owner in the runtime user's `~/.profile`, which Orca's terminals read.
-- Browser tabs: `orca tab create --url <url> --worktree path:<abs>` opens a page on the box, and `orca snapshot` reads its DOM. Agents running on the box cannot check how a page looks: screenshots taken from a terminal on the box come back as a flat single colour. Do not promise visual checks from there.
+- Browser tabs: `orca tab create --url <url> --worktree path:<abs>` opens a page on the box, and `orca snapshot` reads its DOM. Screenshots taken through Orca's browser from a terminal on the box come back as a flat single colour. To check how a page looks, use Playwright, installed for the runtime user: start the app on a free port, screenshot it with headless Chromium (`playwright` and `node` are on the PATH of a login shell), then read the PNG.
 
 ### Remove a project
 
