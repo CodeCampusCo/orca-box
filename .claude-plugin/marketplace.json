@@ -1,0 +1,14 @@
+{
+  "name": "orca-box",
+  "description": "Skills for working with an Orca server on a box set up from the orca-box repository.",
+  "owner": {
+    "name": "CodeCampusCo"
+  },
+  "plugins": [
+    {
+      "name": "orca-box",
+      "source": "./plugins/orca-box",
+      "description": "Lets a coding agent reach the box's Orca server with the orca CLI, give agents work, watch runs and install agents."
+    }
+  ]
+}
