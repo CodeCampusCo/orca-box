@@ -52,34 +52,11 @@ uid="$(id -u "$RUN_USER")"
 until [ -d "/run/user/$uid" ]; do sleep 1; done
 su - "$RUN_USER" -c "XDG_RUNTIME_DIR=/run/user/$uid orca-ide serve service install --port $ORCA_PORT"
 
-# Node and Playwright with Chromium for the runtime user, so agents can screenshot pages themselves
+# agent-browser (bundled with Orca) with its own Chrome, so agents can screenshot pages themselves
 # (screenshots through Orca's browser come back as one flat colour on this server).
-su - "$RUN_USER" -c "NODE_VERSION=${NODE_VERSION:-22.23.4} PLAYWRIGHT_VERSION=${PLAYWRIGHT_VERSION:-1.65.0} bash -s" <<'PW'
-set -euo pipefail
-NODE_VERSION="${NODE_VERSION:-22.23.4}"
-PLAYWRIGHT_VERSION="${PLAYWRIGHT_VERSION:-1.65.0}"
-
-case "$(uname -m)" in x86_64) arch=x64 ;; aarch64) arch=arm64 ;; *) echo "unsupported arch" >&2; exit 1 ;; esac
-tarball="node-v${NODE_VERSION}-linux-${arch}.tar.xz"
-base="https://nodejs.org/dist/v${NODE_VERSION}"
-node_dir="$HOME/.local/node-v${NODE_VERSION}"
-tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
-
-if [ ! -x "$node_dir/bin/node" ]; then
-  curl -fL -o "$tmp/$tarball" "$base/$tarball"
-  curl -fL -o "$tmp/SHASUMS256.txt" "$base/SHASUMS256.txt"
-  (cd "$tmp" && grep " $tarball\$" SHASUMS256.txt | sha256sum -c -)
-  mkdir -p "$node_dir"
-  tar -xJf "$tmp/$tarball" -C "$node_dir" --strip-components=1
-fi
-mkdir -p "$HOME/.local/bin"
-for b in node npm npx; do ln -sf "$node_dir/bin/$b" "$HOME/.local/bin/$b"; done
-export PATH="$HOME/.local/bin:$PATH"
-
-npm install -g --prefix "$HOME/.local" "playwright@${PLAYWRIGHT_VERSION}"
-playwright install chromium
-
-PW
+case "$(uname -m)" in x86_64) ab_arch=x64 ;; aarch64) ab_arch=arm64 ;; *) echo "unsupported arch" >&2; exit 1 ;; esac
+ab="/opt/Orca/resources/agent-browser-linux-${ab_arch}"
+su - "$RUN_USER" -c "mkdir -p ~/.local/bin && ln -sf '$ab' ~/.local/bin/agent-browser && '$ab' install"
 
 echo "done: orca-ide $(dpkg-query -W -f='${Version}' orca-ide), user=$RUN_USER"
 echo "next: RUNBOOK.md, 'Set up a new box', agent logins"
