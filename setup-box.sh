@@ -59,5 +59,11 @@ printf '[Service]\nEnvironment=ORCA_SERVE_RUNTIME=electron\n' > "$dropin/runtime
 chown "$RUN_USER:$RUN_USER" "$dropin/runtime.conf"
 su - "$RUN_USER" -c "XDG_RUNTIME_DIR=/run/user/$uid systemctl --user daemon-reload"
 
+# agent-browser (bundled with Orca) with its own Chrome, so agents can screenshot pages themselves
+# (screenshots through Orca's browser come back as one flat colour on this server).
+case "$(uname -m)" in x86_64) ab_arch=x64 ;; aarch64) ab_arch=arm64 ;; *) echo "unsupported arch" >&2; exit 1 ;; esac
+ab="/opt/Orca/resources/agent-browser-linux-${ab_arch}"
+su - "$RUN_USER" -c "mkdir -p ~/.local/bin && ln -sf '$ab' ~/.local/bin/agent-browser && '$ab' install"
+
 echo "done: orca-ide $(dpkg-query -W -f='${Version}' orca-ide), user=$RUN_USER"
 echo "next: RUNBOOK.md, 'Set up a new box', agent logins"
