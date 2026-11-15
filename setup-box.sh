@@ -7,6 +7,7 @@ set -euo pipefail
 
 ORCA_VERSION="${ORCA_VERSION:-1.4.247}"
 CODEX_VERSION="${CODEX_VERSION:-0.166.0}"
+OPENCODE_VERSION="${OPENCODE_VERSION:-2.3.0}"
 RUN_USER="${RUN_USER:-orca}"
 ORCA_PORT=6768
 
@@ -37,6 +38,10 @@ for n in codex codex-code-mode-host codex-exec-server; do
   curl -fsSL "https://github.com/openai/codex/releases/download/rust-v${CODEX_VERSION}/${n}-${triple}.tar.gz" | tar -xzC /tmp
   install -m 755 -o "$RUN_USER" -g "$RUN_USER" "/tmp/${n}-${triple}" "/home/$RUN_USER/.local/bin/$n"
 done
+
+# OpenCode V2 only: https://opencode.ai/install is V1, which takes the same `opencode` name and cannot open V2's database.
+# The V2 installer adds an `opencode2` alias each run; the box keeps the one name.
+su - "$RUN_USER" -c "set -o pipefail; curl -fsSL https://opencode.ai/v2/install | bash -s -- --version ${OPENCODE_VERSION} && rm -f ~/.opencode/bin/opencode2"
 
 # Interactive non-login shells read only .bashrc, so ~/.local/bin must be added there too.
 path_line='export PATH="$HOME/.local/bin:$PATH"'
