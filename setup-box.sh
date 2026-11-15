@@ -28,6 +28,8 @@ for k in "/home/${SUDO_USER:-ubuntu}/.ssh/authorized_keys" /root/.ssh/authorized
   if [ -s "$k" ]; then install -m 600 -o "$RUN_USER" -g "$RUN_USER" "$k" "/home/$RUN_USER/.ssh/authorized_keys"; break; fi
 done
 loginctl enable-linger "$RUN_USER"
+# /dev/kvm for agents' hardware-accelerated emulators (needs nested virtualization from the host).
+if getent group kvm >/dev/null; then usermod -aG kvm "$RUN_USER"; fi
 
 su - "$RUN_USER" -c 'curl -fsSL https://claude.ai/install.sh | bash'
 
