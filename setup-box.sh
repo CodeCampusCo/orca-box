@@ -43,6 +43,8 @@ done
 # The V2 installer adds an `opencode2` alias each run; the box keeps the one name.
 su - "$RUN_USER" -c "set -o pipefail; curl -fsSL https://opencode.ai/v2/install | bash -s -- --version ${OPENCODE_VERSION} && rm -f ~/.opencode/bin/opencode2"
 
+su - "$RUN_USER" -c "set -o pipefail; curl -fsSL https://x.ai/cli/install.sh | bash"
+
 # Interactive non-login shells read only .bashrc, so ~/.local/bin must be added there too.
 path_line='export PATH="$HOME/.local/bin:$PATH"'
 grep -qxF "$path_line" "/home/$RUN_USER/.bashrc" || echo "$path_line" >> "/home/$RUN_USER/.bashrc"
