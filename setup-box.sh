@@ -14,7 +14,8 @@ arch="$(dpkg --print-architecture)"   # amd64 or arm64; both have release assets
 deb="orca-ide_${ORCA_VERSION}_${arch}.deb"
 
 apt-get update
-apt-get install -y --no-install-recommends ca-certificates curl git jq ufw gh
+# libatomic1: Node binaries from nvm link libatomic.so.1, which the VM image lacks.
+apt-get install -y --no-install-recommends ca-certificates curl git jq ufw gh libatomic1
 
 curl -fL -o "/tmp/${deb}" "https://github.com/stablyai/orca/releases/download/v${ORCA_VERSION}/${deb}"
 apt-get install -y "/tmp/${deb}"
