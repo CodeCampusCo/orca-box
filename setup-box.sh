@@ -43,7 +43,8 @@ done
 
 # OpenCode V2 only: https://opencode.ai/install is V1, which takes the same `opencode` name and cannot open V2's database.
 # The V2 installer adds an `opencode2` alias each run; the box keeps the one name.
-su - "$RUN_USER" -c "set -o pipefail; curl -fsSL https://opencode.ai/v2/install | bash -s -- --version ${OPENCODE_VERSION} && rm -f ~/.opencode/bin/opencode2"
+# The installer's PATH line goes into .bashrc, which non-interactive shells skip; Ubuntu's ~/.profile already puts ~/.local/bin on PATH.
+su - "$RUN_USER" -c "set -o pipefail; curl -fsSL https://opencode.ai/v2/install | bash -s -- --version ${OPENCODE_VERSION} --no-modify-path && rm -f ~/.opencode/bin/opencode2 && ln -sf ~/.opencode/bin/opencode ~/.local/bin/opencode"
 
 su - "$RUN_USER" -c "set -o pipefail; curl -fsSL https://x.ai/cli/install.sh | bash"
 
