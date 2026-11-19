@@ -52,6 +52,42 @@ su - "$RUN_USER" -c "set -o pipefail; curl -fsSL https://x.ai/cli/install.sh | b
 path_line='export PATH="$HOME/.local/bin:$PATH"'
 grep -qxF "$path_line" "/home/$RUN_USER/.bashrc" || echo "$path_line" >> "/home/$RUN_USER/.bashrc"
 
+# Athena, the agents' shared knowledge base, as the MCP server `athena` for Claude, Codex, OpenCode and Grok.
+# Skipped until the owner places ~/.config/athena/url and ~/.config/athena/token.
+# Every agent reads the token from that file when it connects; Orca does not pass env vars to agents reliably.
+su - "$RUN_USER" -c 'bash -s' <<'EOF'
+set -euo pipefail
+a="$HOME/.config/athena"
+if ! [ -s "$a/url" ] || ! [ -s "$a/token" ]; then echo "athena: $a/url or token missing, skipped"; exit 0; fi
+for f in url token; do v="$(tr -d '[:space:]' < "$a/$f")"; printf %s "$v" > "$a/$f"; done
+chmod 600 "$a/url" "$a/token"
+url="$(cat "$a/url")"
+
+# The header as a JSON object: the output both Claude's headersHelper and Codex's http_headers_helper expect.
+cat > "$a/headers" <<'H'
+#!/bin/sh
+printf '{"Authorization":"Bearer %s"}' "$(cat "$HOME/.config/athena/token")"
+H
+chmod 700 "$a/headers"
+
+claude mcp remove -s user athena >/dev/null 2>&1 || true
+claude mcp add-json -s user athena "$(jq -nc --arg u "$url" --arg h "$a/headers" '{type: "http", url: $u, headersHelper: $h}')"
+
+mkdir -p ~/.codex ~/.grok ~/.config/opencode
+grep -qxF '[mcp_servers.athena]' ~/.codex/config.toml 2>/dev/null ||
+  printf '\n[mcp_servers.athena]\nurl = "%s"\nhttp_headers_helper = "%s"\n' "$url" "$a/headers" >> ~/.codex/config.toml
+grep -qxF '[mcp_servers.athena]' ~/.grok/config.toml 2>/dev/null ||
+  printf '\n[mcp_servers.athena]\nurl = "%s"\nbearer_token_file = "%s"\n' "$url" "$a/token" >> ~/.grok/config.toml
+
+o=~/.config/opencode/opencode.json
+[ -s "$o" ] || echo '{}' > "$o"
+jq --arg u "$url" --arg t "Bearer {file:$a/token}" \
+  '.mcp.servers.athena = {type: "remote", url: $u, headers: {Authorization: $t}, oauth: false}' "$o" > "$o.new"
+mv "$o.new" "$o"
+
+echo "athena: configured"
+EOF
+
 # SSH and Orca only from the gateway's subnet: the host's proxies connect from the VM's bridge.
 gw="$(ip route | awk '/^default/ {print $3; exit}')"
 ufw default deny incoming

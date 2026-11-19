@@ -21,7 +21,7 @@ Steps (U = only the user can do it):
 5. Copy the scripts and run `setup-host.sh` ("Set up a new box" step 2). U: `sudo` password.
 6. U: `sudo tailscale up --hostname <name>` and the login (step 3), Tailnet Lock signing (step 4), disable key expiry (step 5).
 7. Check SSH over the tailnet to the host and to the VM, then run `--lock-lan` and confirm the LAN times out (step 6).
-8. U: GitHub token (step 7).
+8. U: GitHub token and, if the agents use Athena, the Athena token (step 7).
 9. U: pairing in their own terminal (step 8).
 10. U: agent logins (step 9). Last, because the user may not use the two agents the scripts install: ask which agents they use before logging in anything.
 
@@ -52,7 +52,7 @@ On any failure: stop, show the user the exact error, and do not work around it. 
 4. Tailnet Lock: the new node starts locked out. In the admin console, Machines, choose Sign node for it (or run the `tailscale lock sign ...` command the host's `tailscale lock status` prints, from a signing node's Tailscale CLI).
 5. Admin console, the new machine, `...`: Disable key expiry.
 6. Check from your computer that `ssh <admin>@<ts>` and `ssh -p 2222 orca@<ts>` both work. Then close the LAN, over the tailnet: `ssh -t <admin>@<ts> sudo bash setup-host.sh --lock-lan`. Afterwards the LAN reaches nothing on the host; check that `ssh <admin>@<lan-ip>` times out.
-7. `gh auth login --with-token` with a fine-grained token scoped to the repos the box works on, then `gh auth setup-git`.
+7. `gh auth login --with-token` with a fine-grained token scoped to the repos the box works on, then `gh auth setup-git`. If the agents share an Athena knowledge base: mint a `write` token for the box from your own computer (never put a Cloudflare credential on the box), then in your own terminal run `ssh -p 2222 orca@<ts> 'umask 077; mkdir -p ~/.config/athena; cat > ~/.config/athena/token'`, paste the token, press Enter and Ctrl-D, and do the same with `url` for Athena's MCP URL. Then rerun `ssh -t <admin>@<ts> sudo bash setup-host.sh`: it adds Athena to every agent's MCP config, with each reading the token from that file.
 8. Pair Orca, in your own terminal (the URL is a credential, keep it out of chats): `scp -P 2222 pair.sh orca@<ts>:` then `ssh -t -p 2222 orca@<ts> bash pair.sh <ts>`. Paste the URL into Orca: Settings, Remote Orca Servers, Add server. For the mobile app (iPhone on the same tailnet) add `--mobile-pairing` after `<ts>`, then in the app choose Pair and scan the QR code. Press Enter on the box when paired.
 9. Agents, last, as `orca` (`ssh -t -p 2222 orca@<ts>`). The scripts install Claude Code, Codex, OpenCode and Grok: log in with `claude` (then `/exit`), `codex login --device-auth` and `grok login`; check with `claude -p "Reply with exactly: ok"`, `codex exec --skip-git-repo-check "Reply with exactly: ok" </dev/null` and `grok -p "Reply with exactly: ok"`. Orca starts Claude Code in automations with permission prompts off, and the first such run stops at a one-time "Bypass Permissions" confirmation; until someone accepts it in that run's terminal in Orca ("Yes, I accept"), the run stays `dispatched`. Accept it once after the first Claude automation is created. If the user wants a different or additional agent, ask which one, then find its current install and login instructions (its own documentation) and help install and log in as `orca` in the VM, with a one-line prompt as the check. Anything installed by hand is lost when the VM is rebuilt: offer to add its install to `setup-box.sh`, and make that script change first.
 
@@ -72,10 +72,14 @@ The VM is never resized or repaired; it is rebuilt, and the node keeps its Tails
 
 ## Retire a box
 
-1. In the VM as `orca`: `claude auth logout`, `codex logout`, and log out of any other agent. Revoke the box's GitHub token.
+1. In the VM as `orca`: `claude auth logout`, `codex logout`, and log out of any other agent. Revoke the box's GitHub token and its Athena token.
 2. In Orca on your computer: remove the server entry.
 3. Tailscale admin console: remove the host's machine. The host is not a signing node, so no `tailscale lock remove` is needed; the console refuses to remove a signing node, in which case something is wrong.
 4. Wipe the host's disk (this destroys the VM with it).
+
+## If the box may be compromised
+
+Every agent runs as `orca` and can read every credential in the VM, so revoke them all from your own computer: the GitHub token, each agent's login from its provider's account page, and the Athena token (`revoke` on your owner connection, effective on the next request). In Athena, read what the box's token submitted since the suspected time and `erase` what is bad. Then rebuild the VM (above) and issue new credentials.
 
 ## Tailnet Lock signing nodes
 
