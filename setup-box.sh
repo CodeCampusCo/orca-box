@@ -74,10 +74,21 @@ claude mcp remove -s user athena >/dev/null 2>&1 || true
 claude mcp add-json -s user athena "$(jq -nc --arg u "$url" --arg h "$a/headers" '{type: "http", url: $u, headersHelper: $h}')"
 
 mkdir -p ~/.codex ~/.grok ~/.config/opencode
-grep -qxF '[mcp_servers.athena]' ~/.codex/config.toml 2>/dev/null ||
-  printf '\n[mcp_servers.athena]\nurl = "%s"\nhttp_headers_helper = "%s"\n' "$url" "$a/headers" >> ~/.codex/config.toml
-grep -qxF '[mcp_servers.athena]' ~/.grok/config.toml 2>/dev/null ||
-  printf '\n[mcp_servers.athena]\nurl = "%s"\nbearer_token_file = "%s"\n' "$url" "$a/token" >> ~/.grok/config.toml
+# Rewrites the [mcp_servers.athena] table (and its sub-tables) at the end of a TOML file, keeping the rest.
+athena_toml() {
+  touch "$1"
+  awk '/^\[/ { skip = ($0 == "[mcp_servers.athena]" || index($0, "[mcp_servers.athena.") == 1) }
+    skip { next } /^$/ { blank = blank "\n"; next } { printf "%s", blank; blank = ""; print }' "$1" > "$1.new"
+  printf '\n[mcp_servers.athena]\n%s\n' "$2" >> "$1.new"
+  mv "$1.new" "$1"
+}
+# omit_tools_from: without it Codex defers MCP tools behind code mode, so the model never sees Athena's tools or
+# instructions. Undocumented (present in the 0.166.0 binary): check it still exists after a Codex upgrade.
+athena_toml ~/.codex/config.toml "url = \"$url\"
+http_headers_helper = \"$a/headers\"
+omit_tools_from = [\"code_mode\"]"
+athena_toml ~/.grok/config.toml "url = \"$url\"
+bearer_token_file = \"$a/token\""
 
 o=~/.config/opencode/opencode.json
 [ -s "$o" ] || echo '{}' > "$o"
