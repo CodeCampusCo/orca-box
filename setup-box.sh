@@ -42,9 +42,14 @@ for n in codex codex-code-mode-host codex-exec-server; do
 done
 
 # OpenCode V2 only: https://opencode.ai/install is V1, which takes the same `opencode` name and cannot open V2's database.
-# The V2 installer adds an `opencode2` alias each run; the box keeps the one name.
-# The installer's PATH line goes into .bashrc, which non-interactive shells skip; Ubuntu's ~/.profile already puts ~/.local/bin on PATH.
-su - "$RUN_USER" -c "set -o pipefail; curl -fsSL https://opencode.ai/v2/install | bash -s -- --version ${OPENCODE_VERSION} --no-modify-path && rm -f ~/.opencode/bin/opencode2 && ln -sf ~/.opencode/bin/opencode ~/.local/bin/opencode"
+# The binary comes from the npm package the V2 installer (https://opencode.ai/v2/install) downloads, because that
+# installer also writes an `opencode2` command, which Orca offers as a separate agent.
+# The baseline build is for x64 CPUs without AVX2.
+case "$arch" in amd64) oc=linux-x64; grep -qw avx2 /proc/cpuinfo || oc=linux-x64-baseline ;; arm64) oc=linux-arm64 ;; esac
+oc_dir="$(mktemp -d)"
+curl -fsSL "https://registry.npmjs.org/@opencode/cli-${oc}/-/cli-${oc}-${OPENCODE_VERSION}.tgz" | tar -xzC "$oc_dir"
+install -m 755 -o "$RUN_USER" -g "$RUN_USER" "$oc_dir/package/bin/opencode" "/home/$RUN_USER/.local/bin/opencode"
+rm -rf "$oc_dir"
 
 su - "$RUN_USER" -c "set -o pipefail; curl -fsSL https://x.ai/cli/install.sh | bash"
 
