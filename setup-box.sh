@@ -90,10 +90,11 @@ omit_tools_from = [\"code_mode\"]"
 athena_toml ~/.grok/config.toml "url = \"$url\"
 bearer_token_file = \"$a/token\""
 
+# codemode false: through Code Mode the model sees only each tool description's first line, cut at 120 characters.
 o=~/.config/opencode/opencode.json
 [ -s "$o" ] || echo '{}' > "$o"
 jq --arg u "$url" --arg t "Bearer {file:$a/token}" \
-  '.mcp.servers.athena = {type: "remote", url: $u, headers: {Authorization: $t}, oauth: false}' "$o" > "$o.new"
+  '.mcp.servers.athena = {type: "remote", url: $u, headers: {Authorization: $t}, oauth: false, codemode: false}' "$o" > "$o.new"
 mv "$o.new" "$o"
 
 echo "athena: configured"
