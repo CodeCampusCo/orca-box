@@ -6,6 +6,8 @@ A Claude Code plugin, `orca-box`, that lets a coding agent work with the Orca se
 |---|---|
 | `orca-box` | reach the box's Orca server with the `orca` CLI, give agents work, watch runs, install and log in agents |
 
+On the box itself `setup-box.sh` installs the plugin for Claude Code; these steps are for the owner's own computer.
+
 ## What the owner needs first
 
 - The Orca desktop app on this computer, paired with the box (RUNBOOK.md, Orca pairing).

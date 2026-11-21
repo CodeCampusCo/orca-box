@@ -105,6 +105,12 @@ mv "$o.new" "$o"
 echo "athena: configured"
 EOF
 
+# This repo's orca-box skill, for Claude Code sessions started on the box.
+# HTTPS: the box has no GitHub SSH key, and the repo is public.
+su - "$RUN_USER" -c 'claude plugin marketplace add https://github.com/CodeCampusCo/orca-box.git &&
+  claude plugin marketplace update orca-box && claude plugin install orca-box@orca-box &&
+  claude plugin update orca-box@orca-box'
+
 # SSH and Orca only from the gateway's subnet: the host's proxies connect from the VM's bridge.
 gw="$(ip route | awk '/^default/ {print $3; exit}')"
 ufw default deny incoming

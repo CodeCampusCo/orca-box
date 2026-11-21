@@ -5,7 +5,7 @@ description: Use when work involves the Orca server on the remote box: giving ag
 
 # Orca on the box
 
-The box runs an Orca server inside a VM. This session reaches it with the `orca` CLI only, and the CLI already points at the box.
+The box runs an Orca server inside a VM. This session reaches it with the `orca` CLI only. On the owner's computer the CLI already points at the box. A session running on the box itself (its home is `/home/<runtime user>`, for example one started through Remote Control) uses the local server: `orca status --json` shows `target.kind` as `local`, that is correct, and `ORCA_ENVIRONMENT` is not needed. Section 7 is for those sessions.
 
 ## 1. Confirm the target
 
@@ -63,6 +63,8 @@ Pick by what you expect back. From outside an Orca terminal, `--repo id:<repoId>
   - grok asks "Do you trust the contents of this directory?" the first time it runs in a repo, and `worker-start` fails at `agent_readiness` (`agent-trust-workspace`). Answer `y` in that terminal once (grok saves it in `~/.grok/trusted_folders.toml`), release the dead terminal and retry with `--retry-of <dispatch_id>`.
   - An Orca restart during `worker-start` left a dispatch in `start_unknown`, and `orchestration send` never reached a worker that had not had its first turn. What worked: `worker-abandon` the dispatch, set the Task back to ready, and start it again on the same idle terminal with `--terminal <handle>`.
   - opencode's free model endpoint went away mid-task (`Upstream request failed: Endpoint is unavailable`), and opencode once ended a turn without `worker_done`. Check an opencode worker's screen when it goes quiet instead of waiting for its signal.
+  - `worker-start` with opencode failed on server 1.4.247: Orca passed a `--model` flag that opencode 2.3.0 rejects. A coordinator worked around it by starting opencode itself in the lane's worktree. Agent id `opencode2` has no command on the box; use `opencode`.
+  - Worktrees do not have the main checkout's gitignored files (`.env`, local media, `docs/plans/`). A brief points the worker at those files by absolute path in the main checkout.
 - Scheduled: `orca automations create --name <n> --trigger "<cron>" --timezone UTC --prompt "<brief>" --provider claude --repo id:<repoId> [--precheck "<cmd>"] --json`; test with `automations run <id>`, read history with `automations runs --id <id>`, stop with `automations edit <id> --disabled`. A failing precheck gives status `skipped_precheck` with no worktree and no agent; `automations run` bypasses the precheck, scheduled runs honour it. The server owns the scheduler: a scheduled run was seen to complete while the owner's desktop app was quit (observed, not guaranteed).
 
 A worker brief names the tools (`agent-browser` and its commands, not "the browser tool"), gives the exact first-open command with `--args "--no-sandbox"` (a worker does not read this skill, and Chrome does not start without it), says not to use `orca screenshot` or Orca's built-in browser on the box, lists the widths to check (for example 360, 390, 768, 900, 1024, 1280, 1440), says not to ask questions but to write `blocked.md` and stop, says not to push (use local git), says to stop any server it started, and ends with the completion signal: `orca worktree set --worktree active --comment "done: <one line>" --workspace-status in-review`. Wait by polling `orca worktree show --worktree id:<id>` for that status; `terminal wait --for tui-idle` only says the agent's screen is idle; a coordinator waiting for its workers is idle too, so it is not proof of completion.
@@ -91,4 +93,11 @@ The command deletes no files. To remove the directory too, run `rm -rf <path>` i
 
 ## 6. Not done from here
 
-Updating Orca on the box, rebuilding the VM and changing the host belong to the session that keeps the box scripts.
+Updating Orca on the box, rebuilding the VM and changing the host belong to the session that keeps the box scripts. Tools a project needs (ffmpeg, a browser build, fonts) are installed by a script in that project's repo, without sudo, not by the box scripts.
+
+## 7. Working on the box itself
+
+- Remote Control: the owner reaches Claude Code sessions on the box from the Claude desktop, mobile and web apps through `claude remote-control`, run in an Orca terminal in a folder workspace in the runtime user's home. It needs a full claude.ai login on the box: `CLAUDE_CODE_OAUTH_TOKEN` can only make model requests and cannot start Remote Control, so start it as `cd <workspace> && env -u CLAUDE_CODE_OAUTH_TOKEN claude remote-control --name <name>`. Within about four hours of it stopping, `--continue` restores its session. After about 10 minutes without network it exits. It is not restarted automatically (owner's decision): the owner restarts it from the Orca app. Do not move it into a systemd service: its sessions inherit the Orca terminal's environment (`ORCA_TERMINAL_HANDLE` and the rest), which is why `orca orchestration` commands work from them (`run-list` was tested, write commands were not).
+- node comes from nvm, which is loaded only in interactive shells: `bash -lc '<cmd>'` does not find `node` or `npx`, `bash -lic '<cmd>'` does.
+- The box's `gh` may hold a fine-grained token, which cannot read `statusCheckRollup` ("Resource not accessible by personal access token", even with Commit statuses and Actions read). To wait for a PR's checks, poll `gh run list --branch <branch> --json headSha,status,conclusion` instead.
+- `gh auth login --with-token` shows a pasted token on screen. When the owner logs `gh` in, have them run `read -rsp 'Paste token: ' T; printf '%s' "$T" | gh auth login --with-token; unset T`.
