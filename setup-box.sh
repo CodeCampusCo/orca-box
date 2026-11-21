@@ -105,6 +105,20 @@ mv "$o.new" "$o"
 echo "athena: configured"
 EOF
 
+# Commits from the box carry the gh account's noreply address, so no address is written here or typed per commit.
+# Needs gh logged in (RUNBOOK set-up step 7), so a first run skips it.
+su - "$RUN_USER" -c 'bash -s' <<'EOF'
+set -euo pipefail
+if git config --global user.email >/dev/null; then echo "git identity: already set"; exit 0; fi
+if ! u="$(gh api user --jq '[.id, .login, (.name // .login)] | @tsv' 2>/dev/null)"; then
+  echo "git identity: gh not logged in, skipped"; exit 0
+fi
+IFS=$'\t' read -r id login name <<<"$u"
+git config --global user.name "$name"
+git config --global user.email "${id}+${login}@users.noreply.github.com"
+echo "git identity: set"
+EOF
+
 # This repo's orca-box skill, for Claude Code sessions started on the box.
 # HTTPS: the box has no GitHub SSH key, and the repo is public.
 su - "$RUN_USER" -c 'claude plugin marketplace add https://github.com/CodeCampusCo/orca-box.git &&
